@@ -11,6 +11,7 @@ import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -21,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.text.Html;
+import android.text.Spannable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -266,6 +268,7 @@ public final class Tooltip {
         private boolean mShowing;
         private WeakReference<View> mViewAnchor;
         private boolean mAttached;
+
         private final OnAttachStateChangeListener mAttachedStateListener = new OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(final View v) {
@@ -314,6 +317,7 @@ public final class Tooltip {
         private CharSequence mText;
         private Rect mViewRect;
         private View mView;
+        private View mDimView;
         private TooltipOverlay mViewOverlay;
         private final ViewTreeObserver.OnPreDrawListener mPreDrawListener = new ViewTreeObserver.OnPreDrawListener() {
             @Override
@@ -488,6 +492,9 @@ public final class Tooltip {
                 if (act != null) {
                     ViewGroup rootView;
                     rootView = (ViewGroup) (act.getWindow().getDecorView());
+                    mDimView = new View(getContext());
+                    mDimView.setBackgroundColor(Color.parseColor("#80000000"));
+                    rootView.addView(mDimView);
                     rootView.addView(this, params);
                 }
             }
@@ -573,6 +580,7 @@ public final class Tooltip {
 
             if (null != parent) {
                 ((ViewGroup) parent).removeView(TooltipViewImpl.this);
+                ((ViewGroup) parent).removeView(mDimView);
 
                 if (null != mShowAnimation && mShowAnimation.isStarted()) {
                     mShowAnimation.cancel();
@@ -790,7 +798,7 @@ public final class Tooltip {
             mView.setLayoutParams(params);
 
             mTextView = (TextView) mView.findViewById(android.R.id.text1);
-            mTextView.setText(Html.fromHtml((String) this.mText));
+            mTextView.setText(this.mText);
             if (mMaxWidth > -1) {
                 mTextView.setMaxWidth(mMaxWidth);
                 log(TAG, VERBOSE, "[%d] maxWidth: %d", mToolTipId, mMaxWidth);
@@ -1253,7 +1261,7 @@ public final class Tooltip {
         public void setText(final CharSequence text) {
             this.mText = text;
             if (null != mTextView) {
-                mTextView.setText(Html.fromHtml((String) text));
+                mTextView.setText(text);
             }
         }
 
